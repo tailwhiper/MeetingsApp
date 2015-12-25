@@ -2,6 +2,7 @@ package tavi.tiki.niki.meetingsapplication;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -9,15 +10,21 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.google.gson.Gson;
+
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import model.Meeting;
+import model.Participant;
 
 public class AddMeetingActivity extends AppCompatActivity {
     private String mTitle;
@@ -138,6 +145,21 @@ public class AddMeetingActivity extends AppCompatActivity {
         });
 
          dialogBuilder.create().show();
+    }
+    public void AddMeeting(View view){
+        Intent intent = new Intent();
+        mTitle = ((EditText)findViewById(R.id.editTitle)).getText().toString();
+        mSummary = ((EditText)findViewById(R.id.editSummary)).getText().toString();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd-HH:mm");
+
+        intent.putExtra("title",mTitle);
+        intent.putExtra("summary",mSummary);
+        intent.putExtra("startDate", sdf.format(mDateStart));
+        intent.putExtra("endDate",sdf.format(mDateEnd));
+        intent.putExtra("priority",mPriority);
+
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
 }

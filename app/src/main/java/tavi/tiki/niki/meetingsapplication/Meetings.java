@@ -1,6 +1,5 @@
 package tavi.tiki.niki.meetingsapplication;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -12,11 +11,13 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import SwipeToDissimiss.SwipeDismissListViewTouchListener;
+import model.Meeting;
 import model.MeetingShortInfo;
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -83,10 +84,13 @@ public class Meetings extends AppCompatActivity {
     public void fill() {
         meetingShortInfos = new ArrayList<MeetingShortInfo>();
         //meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
-       // meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
+        // meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(2, "title2", 3, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(3, "title3", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(4, "title4", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
+    }
+
+    public void putMeeting(String s) {
     }
 
     public void getAllMeetings() {
@@ -136,12 +140,29 @@ public class Meetings extends AppCompatActivity {
                 Log.d("Retrofit Error", error.getMessage());
             }
         });
-
-
-
     }
+    public void addMeeting(String title, String summary, String startDate, String endDate, int priority) {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
 
+        Restapi api = restAdapter.create(Restapi.class);
+        api.putMeeting(title,summary,startDate,endDate,priority, new Callback<String>() {
+            @Override
+            public void success(String s, Response response) {
+                Toast.makeText(getApplicationContext(), "Meeting was added on server", Toast.LENGTH_LONG).show();
+                getAllMeetings();
+            }
 
+            @Override
+            public void failure(RetrofitError error) {
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("Retrofit Error", error.getMessage());
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,23 +196,24 @@ public class Meetings extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
     public void startAddMeeting(View v) {
         Intent intent = new Intent(this, AddMeetingActivity.class);
-        startActivityForResult(intent,ADD_MEETING__CODE);
+        startActivityForResult(intent, ADD_MEETING__CODE);
     }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data == null) {return;}
+        if (data == null) {
+            return;
+        }
         //+ add Meeting to service
-        Toast.makeText(this,"meet add",Toast.LENGTH_SHORT).show();
+        String meeting = data.getStringExtra("title");
+
+        addMeeting(data.getStringExtra("title"),data.getStringExtra("summary"),data.getStringExtra("startDate"),data.getStringExtra("endDate"),data.getIntExtra("priority",-1));
+        
 
     }
-    public void showAddDialog(View view) {
-        final Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.datetime_picker_dialog);
-        dialog.show();
 
-    }
 }

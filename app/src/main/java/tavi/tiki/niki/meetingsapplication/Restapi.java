@@ -7,8 +7,10 @@ import java.util.List;
 import model.Meeting;
 import model.MeetingShortInfo;
 import retrofit.Callback;
+import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
+import retrofit.http.PUT;
 import retrofit.http.Path;
 
 
@@ -25,4 +27,11 @@ public interface Restapi {
 
     @DELETE("/delete/{id}")
     public void deleteMeeting(@Path("id") String id, Callback<String> response);
+    @PUT("/put/{title}/{summary}/{startDate}/{endDate}/{priority}")
+    public void putMeeting(@Path("title") String title,
+                           @Path("summary") String summary,
+                           @Path("startDate") String startDate,
+                           @Path("endDate") String endDate,
+                           @Path("priority") int priority,
+                           Callback<String> response);
 }

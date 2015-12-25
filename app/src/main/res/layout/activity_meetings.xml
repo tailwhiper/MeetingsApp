@@ -17,13 +17,14 @@
     android:layout_alignParentEnd="true" />
 </android.support.v4.widget.SwipeRefreshLayout>
     <ImageButton
+
         android:background="@android:drawable/ic_menu_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/addButton"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:onClick="showAddDialog">
+        android:onClick="startAddMeeting">
 
     </ImageButton>
 </RelativeLayout>

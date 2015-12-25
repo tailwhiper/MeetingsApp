@@ -1,38 +1,143 @@
 package tavi.tiki.niki.meetingsapplication;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TimePicker;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import model.Meeting;
 
 public class AddMeetingActivity extends AppCompatActivity {
+    private String mTitle;
+    private String mSummary;
+    private Date mDateStart;
+    private Date mDateEnd;
+    private int mPriority;
+    SimpleDateFormat sdf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_meeting);
+        initDates();
+        initSpinner();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_add_meeting, menu);
-        return true;
+    private void initDates() {
+
+        sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        mDateStart = new Date(System.currentTimeMillis());
+        mDateEnd = new Date(System.currentTimeMillis() + 1800000);
+        TextView dateStartView = (TextView) findViewById(R.id.textViewStartDate);
+        TextView dateEndView = (TextView) findViewById(R.id.textViewEndDate);
+        dateStartView.setText(getString(R.string.start_date) + sdf.format(mDateStart));
+        dateEndView.setText(getString(R.string.end_date) + sdf.format(mDateEnd));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    private void updateDate(boolean isStartDate) {
+        if (isStartDate) {
+            TextView dateStartView = (TextView) findViewById(R.id.textViewStartDate);
+            dateStartView.setText(getString(R.string.start_date) + sdf.format(mDateStart));
+        } else {
+            TextView dateEndView = (TextView) findViewById(R.id.textViewEndDate);
+            dateEndView.setText(getString(R.string.end_date) + sdf.format(mDateEnd));
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    private void initSpinner() {
+        Spinner spinner = (Spinner) findViewById(R.id.spinner_priority);
+        // Создаем адаптер ArrayAdapter с помощью массива строк и стандартной разметки элемета spinner
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.priority_array, android.R.layout.simple_spinner_item);
+        // Определяем разметку для использования при выборе элемента
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Применяем адаптер к элементу spinner
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        mPriority = Meeting.PRIORITY_URGENT;
+                        break;
+                    case 1:
+                        mPriority = Meeting.PRIORITY_PLANNED;
+                        break;
+                    case 2:
+                        mPriority = Meeting.PRIORITY_IF_POSSIBLE;
+                        break;
+                    default:
+                        mPriority = Meeting.PRIORITY_IF_POSSIBLE;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
+    public void back(View v) {
+        finish();
+    }
+
+    public void chooseStartDate(View v){
+        createDateDialog("Choose when meeting starts", true);
+    }
+    public void chooseEndDate(View v){
+        createDateDialog("Choose when meeting ends",false);
+    }
+    private void createDateDialog(String title, final boolean isForStartDate) {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle(title);
+        RelativeLayout view = (RelativeLayout) getLayoutInflater()
+                .inflate(R.layout.datetime_picker_dialog, null);
+        dialogBuilder.setView(view);
+        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        dialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Dialog thisDialog = Dialog.class.cast( dialog);
+                DatePicker date = (DatePicker) thisDialog.findViewById(R.id.datePicker);
+                TimePicker time = (TimePicker) thisDialog.findViewById(R.id.timePicker);
+                Date chosenDate;
+                TextView chosenDateView;
+                if (isForStartDate) {
+                    chosenDate = mDateStart;
+
+                } else {
+                    chosenDate = mDateEnd;
+                }
+
+                chosenDate.setYear(date.getYear()-1900);
+                chosenDate.setMonth(date.getMonth());
+                chosenDate.setDate(date.getDayOfMonth());
+                chosenDate.setHours(time.getCurrentHour());
+                chosenDate.setMinutes(time.getCurrentMinute());
+                updateDate(isForStartDate);
+            }
+        });
+
+         dialogBuilder.create().show();
     }
 
 }

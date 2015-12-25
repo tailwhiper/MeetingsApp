@@ -46,9 +46,8 @@
         android:id="@+id/textViewStartDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonChooseStart"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/Summary"
-        android:layout_marginTop="28dp"
         android:text="@string/start_date"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -57,9 +56,8 @@
         android:id="@+id/textViewEndDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonChooseEnd"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/textViewStartDate"
-        android:layout_marginTop="25dp"
         android:text="@string/end_date"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -77,44 +75,44 @@
         android:id="@+id/spinner_priority"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/textViewPriority"
         android:layout_alignBottom="@+id/textViewPriority"
-        android:layout_toEndOf="@+id/textViewStartDate" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/Add"
-        android:id="@+id/button"
-        android:layout_below="@+id/spinner_priority"
-        android:layout_alignEnd="@+id/spinner_priority"
-        android:layout_marginEnd="58dp"
-        android:layout_marginTop="61dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/back"
-        android:id="@+id/button2"
-        android:layout_alignTop="@+id/button"
+        android:layout_alignTop="@+id/textViewPriority"
         android:layout_toEndOf="@+id/textViewPriority" />
 
-    <EditText
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/buttonAccept"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="date"
-        android:ems="10"
-        android:id="@+id/editText"
-        android:layout_alignBottom="@+id/textViewStartDate"
-        android:layout_alignStart="@+id/editSummary" />
+        android:layout_below="@+id/spinner_priority"
+        android:layout_marginTop="55dp"
+        android:layout_toEndOf="@+id/buttonBack"
+        android:text="@string/Add" />
 
-    <EditText
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/buttonBack"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="date"
-        android:ems="10"
-        android:id="@+id/editText2"
-        android:layout_above="@+id/textViewPriority"
-        android:layout_alignStart="@+id/editText" />
+        android:layout_alignStart="@+id/editSummary"
+        android:layout_alignTop="@+id/buttonAccept"
+        android:onClick="back"
+        android:text="@string/back" />
+
+    <Button
+        android:id="@+id/buttonChooseStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/editSummary"
+        android:layout_below="@+id/editSummary"
+        android:onClick="chooseStartDate"
+        android:text="Choose" />
+
+    <Button
+        android:id="@+id/buttonChooseEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/editSummary"
+        android:layout_below="@+id/textViewStartDate"
+        android:onClick="chooseEndDate"
+        android:text="Choose" />
 
 </RelativeLayout>

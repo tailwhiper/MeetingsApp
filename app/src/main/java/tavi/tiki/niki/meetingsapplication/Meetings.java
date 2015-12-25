@@ -1,5 +1,7 @@
 package tavi.tiki.niki.meetingsapplication;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +31,7 @@ public class Meetings extends AppCompatActivity {
     SwipeRefreshLayout mSwipeRefreshLayout;
     private final static String USERNAME = "nikita";
     private final static String PASSWORD = "password";
+    private final static int ADD_MEETING__CODE = 1;
 
     public void initAdapter() {
         adapter = new MeetingsListAdapter(this, meetingShortInfos);
@@ -121,11 +124,12 @@ public class Meetings extends AppCompatActivity {
                 .build();                                        //create an adapter for retrofit with base url
 
         Restapi api = restAdapter.create(Restapi.class);
-        api.deleteMeeting(id,new Callback<String>() {
+        api.deleteMeeting(id, new Callback<String>() {
             @Override
             public void success(String s, Response response) {
-                Toast.makeText(getApplicationContext(),"Meeting was deleted on server", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Meeting was deleted on server", Toast.LENGTH_LONG).show();
             }
+
             @Override
             public void failure(RetrofitError error) {
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
@@ -137,8 +141,7 @@ public class Meetings extends AppCompatActivity {
 
     }
 
-    public void showAddDialog(View view) {
-    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,5 +175,23 @@ public class Meetings extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public void
+    public void startAddMeeting(View v) {
+        Intent intent = new Intent(this, AddMeetingActivity.class);
+        startActivityForResult(intent,ADD_MEETING__CODE);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {return;}
+        //+ add Meeting to service
+        Toast.makeText(this,"meet add",Toast.LENGTH_SHORT).show();
+
+    }
+    public void showAddDialog(View view) {
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.datetime_picker_dialog);
+        dialog.show();
+
+    }
 }

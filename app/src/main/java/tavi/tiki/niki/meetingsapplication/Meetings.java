@@ -50,6 +50,8 @@ public class Meetings extends AppCompatActivity {
                             @Override
                             public void onDismiss(ListView listView, int[] reverseSortedPositions) {
                                 for (int position : reverseSortedPositions) {
+                                    int id = meetingShortInfos.get(position).getId();
+                                    deleteMeeting(Integer.toString(id));
                                     meetingShortInfos.remove(position);
                                 }
                                 adapter.notifyDataSetChanged();
@@ -61,7 +63,8 @@ public class Meetings extends AppCompatActivity {
         listView.setOnScrollListener(touchListener.makeScrollListener());
 
     }
-    public void  initSwipeRefresh(){
+
+    public void initSwipeRefresh() {
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refreshLayout);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -76,8 +79,8 @@ public class Meetings extends AppCompatActivity {
 
     public void fill() {
         meetingShortInfos = new ArrayList<MeetingShortInfo>();
-        meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
-        meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
+        //meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
+       // meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(2, "title2", 3, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(3, "title3", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
         // meetingShortInfos.add(new MeetingShortInfo(4, "title4", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
@@ -109,7 +112,33 @@ public class Meetings extends AppCompatActivity {
         });
 
     }
-    public void showAddDialog(View view){}
+
+    public void deleteMeeting(String id) {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.deleteMeeting(id,new Callback<String>() {
+            @Override
+            public void success(String s, Response response) {
+                Toast.makeText(getApplicationContext(),"Meeting was deleted on server", Toast.LENGTH_LONG).show();
+            }
+            @Override
+            public void failure(RetrofitError error) {
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("Retrofit Error", error.getMessage());
+            }
+        });
+
+
+
+    }
+
+    public void showAddDialog(View view) {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

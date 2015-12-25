@@ -1,8 +1,9 @@
 package model;
 
-import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+
+import java.util.Date;
 import java.util.List;
 
 
@@ -13,12 +14,12 @@ public class Meeting {
     private int id;
     private String title;
     private String summary;
-    private DateTime startdate;
-    private DateTime enddate;
+    private Date startdate;
+    private Date enddate;
     private List<Participant> participants;
     private int priority;
 
-    public Meeting(int id, String title, String summary, DateTime startdate, DateTime enddate, List<Participant> participants, int priority) {
+    public Meeting(int id, String title, String summary, Date startdate,  Date enddate, List<Participant> participants, int priority) {
         this.id = id;
         this.title = title;
         this.summary = summary;
@@ -70,19 +71,19 @@ public class Meeting {
         this.summary = summary;
     }
 
-    public DateTime getStartdate() {
+    public  Date getStartdate() {
         return startdate;
     }
 
-    public void setStartdate(DateTime startdate) {
+    public void setStartdate( Date startdate) {
         this.startdate = startdate;
     }
 
-    public DateTime getEnddate() {
+    public  Date getEnddate() {
         return enddate;
     }
 
-    public void setEnddate(DateTime enddate) {
+    public void setEnddate( Date enddate) {
         this.enddate = enddate;
     }
 

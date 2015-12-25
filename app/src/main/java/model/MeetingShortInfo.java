@@ -1,15 +1,16 @@
 package model;
 
 
-import org.joda.time.DateTime;
+
 
 import java.io.Serializable;
+import java.util.Date;
 
 
 public class MeetingShortInfo implements Serializable {
     private int id;
-    private DateTime startDate;
-    private DateTime endDate;
+    private  Date startDate;
+    private  Date endDate;
     private String title;
     private int priority;
 
@@ -20,7 +21,7 @@ public class MeetingShortInfo implements Serializable {
         this.priority = m.getPriority();
     }
 
-    public MeetingShortInfo(int id, String title, int priority, DateTime startDate, DateTime endDate) {
+    public MeetingShortInfo(int id, String title, int priority, Date startDate, Date endDate) {
         this.id = id;
 
         this.title = title;
@@ -45,19 +46,19 @@ public class MeetingShortInfo implements Serializable {
         this.id = id;
     }
 
-    public DateTime getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(DateTime endDate) {
+    public void setEndDate( Date endDate) {
         this.endDate = endDate;
     }
 
-    public DateTime getStartDate() {
+    public  Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(DateTime startDate) {
+    public void setStartDate( Date startDate) {
         this.startDate = startDate;
     }
 

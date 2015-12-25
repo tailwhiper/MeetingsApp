@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,9 +69,10 @@ public class MeetingsListAdapter extends BaseAdapter {
                 priority = "Priority: not specified";
                 break;
         }
-        ((TextView) view.findViewById(R.id.priority)).setText(priority);
-        ((TextView) view.findViewById(R.id.startDate)).setText("Starts at: "+meet.getStartDate().getDayOfMonth()+"/"+meet.getStartDate().getMonthOfYear()+"/"+meet.getStartDate().getYear()+" "+meet.getStartDate().getHourOfDay()+":"+meet.getStartDate().getMinuteOfHour());
-        ((TextView) view.findViewById(R.id.endDate)).setText("Ends at: "+meet.getEndDate().getDayOfMonth()+"/"+meet.getEndDate().getMonthOfYear()+"/"+meet.getEndDate().getYear()+" "+meet.getEndDate().getHourOfDay()+":"+meet.getEndDate().getMinuteOfHour());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/M/yyyy");
+                ((TextView) view.findViewById(R.id.priority)).setText(priority);
+        ((TextView) view.findViewById(R.id.startDate)).setText("Starts at: "+sdf.format(meet.getStartDate()));
+        ((TextView) view.findViewById(R.id.endDate)).setText("Ends at: "+sdf.format(meet.getEndDate()));
         return view;
     }
 

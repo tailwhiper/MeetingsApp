@@ -1,23 +1,35 @@
 package tavi.tiki.niki.meetingsapplication;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
-
-import org.joda.time.DateTime;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import SwipeToDissimiss.SwipeDismissListViewTouchListener;
 import model.MeetingShortInfo;
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.OkClient;
+import retrofit.client.Response;
 
 
 public class Meetings extends AppCompatActivity {
     List<MeetingShortInfo> meetingShortInfos;
     MeetingsListAdapter adapter;
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    private final static String USERNAME = "nikita";
+    private final static String PASSWORD = "password";
 
     public void initAdapter() {
         adapter = new MeetingsListAdapter(this, meetingShortInfos);
@@ -50,15 +62,55 @@ public class Meetings extends AppCompatActivity {
         listView.setOnScrollListener(touchListener.makeScrollListener());
 
     }
+    public void  initSwipeRefresh(){
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refreshLayout);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getAllMeetings();
+
+            }
+        });
+
+
+    }
 
     public void fill() {
         meetingShortInfos = new ArrayList<MeetingShortInfo>();
-        meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        meetingShortInfos.add(new MeetingShortInfo(2, "title2", 3, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        meetingShortInfos.add(new MeetingShortInfo(3, "title3", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        meetingShortInfos.add(new MeetingShortInfo(4, "title4", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
+        meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
+        meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
+        // meetingShortInfos.add(new MeetingShortInfo(2, "title2", 3, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
+        // meetingShortInfos.add(new MeetingShortInfo(3, "title3", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
+        // meetingShortInfos.add(new MeetingShortInfo(4, "title4", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
     }
+
+    public void getAllMeetings() {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.getAllShort(new Callback<List<MeetingShortInfo>>() {
+            @Override
+            public void success(List<MeetingShortInfo> shortInfos, Response response) {
+                mSwipeRefreshLayout.setRefreshing(false);
+                meetingShortInfos.clear();
+                meetingShortInfos.addAll(shortInfos);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                mSwipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("Retrofit Error", error.getMessage());
+            }
+        });
+
+    }
+    public void showAddDialog(View view){}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +119,7 @@ public class Meetings extends AppCompatActivity {
         fill();
         initAdapter();
         initSwipe();
+        initSwipeRefresh();
 
     }
 

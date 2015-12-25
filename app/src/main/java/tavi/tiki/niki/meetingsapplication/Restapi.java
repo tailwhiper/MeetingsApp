@@ -17,6 +17,9 @@ public interface Restapi {
     @GET("/get/all/short")
     public void getAllShort(Callback<List<MeetingShortInfo>> response);
 
+    @GET("/get/all/short")
+    public void getTodayMeetings(Callback<List<MeetingShortInfo>> response);
+
     @GET("/get/{id}")
     public void getMeeting(@Path("id") String id, Callback<List<Meeting>> response);
 

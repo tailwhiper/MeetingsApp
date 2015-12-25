@@ -26,6 +26,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="tavi.tiki.niki.meetingsapplication.Meetings" />
         </activity>
+        <activity
+            android:name=".AddMeetingActivity"
+            android:label="@string/title_activity_add_meeting"
+            android:parentActivityName=".Meetings" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="tavi.tiki.niki.meetingsapplication.Meetings" />
+        </activity>
     </application>
 
 </manifest>

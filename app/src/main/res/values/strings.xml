@@ -26,5 +26,8 @@
         <item>Planned</item>
         <item>If possible</item>
     </string-array>
+    <string name="title_activity_full_meeting">Full meeting info</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>

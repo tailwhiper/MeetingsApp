@@ -1,5 +1,6 @@
 package tavi.tiki.niki.meetingsapplication;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +21,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
+import java.io.FileOutputStream;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +39,7 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 
 
-public class Meetings extends AppCompatActivity {
+public class MeetingsActivity extends AppCompatActivity {
     List<MeetingShortInfo> meetingShortInfos;
     MeetingsListAdapter adapter;
     SwipeRefreshLayout mSwipeRefreshLayout;
@@ -42,7 +47,8 @@ public class Meetings extends AppCompatActivity {
     private  String password;
 
     private final static int ADD_MEETING__CODE = 1;
-    private final static int FULL_MEETING__CODE = 2;
+    public final static  String fileName ="savedMeetings.json";
+
     public void initPreferences(Context context){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         username = preferences.getString("login","nikita");
@@ -244,13 +250,15 @@ public class Meetings extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initPreferences(this);
         setContentView(R.layout.activity_meetings);
         fill();
         initAdapter();
         initSwipe();
         initSwipeRefresh();
         getTodayMeetings(new Date(System.currentTimeMillis()));//load meetings for today
-        initPreferences(this);
+        Intent intent = new Intent(this, MeetingsBroadcastReceiver.class);
+        startService(intent);
 
     }
 
@@ -258,6 +266,31 @@ public class Meetings extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         initPreferences(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Gson gson = new Gson();
+
+        String string = gson.toJson(meetingShortInfos);
+        FileOutputStream outputStream;
+
+        try {
+
+            outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
+            //тут вставил чарсет
+            /*
+            OutputStreamWriter wr = new OutputStreamWriter(outputStream);
+            wr.write(string);
+            wr.close();
+            */
+            outputStream.write(string.getBytes(Charset.forName("UTF-8")));
+            outputStream.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

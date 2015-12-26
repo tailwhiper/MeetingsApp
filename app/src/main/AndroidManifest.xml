@@ -3,14 +3,14 @@
     package="tavi.tiki.niki.meetingsapplication" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".Meetings"
+            android:name=".MeetingsActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,27 +21,36 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".Meetings" >
+            android:parentActivityName=".MeetingsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="tavi.tiki.niki.meetingsapplication.Meetings" />
+                android:value=".MeetingsActivity" />
         </activity>
         <activity
             android:name=".AddMeetingActivity"
             android:label="@string/title_activity_add_meeting"
-            android:parentActivityName=".Meetings" >
+            android:parentActivityName=".MeetingsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="tavi.tiki.niki.meetingsapplication.Meetings" />
+                android:value=".MeetingsActivity" />
         </activity>
         <activity
             android:name=".FullMeetingActivity"
             android:label="@string/title_activity_full_meeting"
-            android:parentActivityName=".Meetings" >
+            android:parentActivityName=".MeetingsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="tavi.tiki.niki.meetingsapplication.Meetings" />
+                android:value=".MeetingsActivity" />
         </activity>
+
+        <receiver
+            android:name=".MeetingsBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

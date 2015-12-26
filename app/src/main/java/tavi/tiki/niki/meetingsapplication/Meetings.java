@@ -1,15 +1,19 @@
 package tavi.tiki.niki.meetingsapplication;
 
 import android.app.IntentService;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,8 +92,8 @@ public class Meetings extends AppCompatActivity {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-               // getAllMeetings();
-                getTodayMeetings( new Date(System.currentTimeMillis()));
+                // getAllMeetings();
+                getTodayMeetings(new Date(System.currentTimeMillis()));
             }
         });
 
@@ -160,6 +164,33 @@ public class Meetings extends AppCompatActivity {
         });
 
     }
+    public void searchMeeting(String part) {
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.searchMeeting(part, new Callback<List<MeetingShortInfo>>() {
+            @Override
+            public void success(List<MeetingShortInfo> shortInfos, Response response) {
+                mSwipeRefreshLayout.setRefreshing(false);
+                meetingShortInfos.clear();
+                meetingShortInfos.addAll(shortInfos);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                mSwipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("Retrofit Error", error.getMessage());
+            }
+        });
+
+    }
     public void deleteMeeting(String id) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -189,12 +220,12 @@ public class Meetings extends AppCompatActivity {
                 .build();                                        //create an adapter for retrofit with base url
 
         Restapi api = restAdapter.create(Restapi.class);
-        api.putMeeting(title,summary,startDate,endDate,priority, new Callback<String>() {
+        api.putMeeting(title, summary, startDate, endDate, priority, new Callback<String>() {
             @Override
             public void success(String s, Response response) {
                 Toast.makeText(getApplicationContext(), "Meeting was added on server", Toast.LENGTH_LONG).show();
-               // getAllMeetings();
-                getTodayMeetings( new Date(System.currentTimeMillis()));
+                // getAllMeetings();
+                getTodayMeetings(new Date(System.currentTimeMillis()));
             }
 
             @Override
@@ -235,6 +266,9 @@ public class Meetings extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
+        if(id == R.id.search_button){
+            showSearchDialog();
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -256,6 +290,29 @@ public class Meetings extends AppCompatActivity {
         addMeeting(data.getStringExtra("title"), data.getStringExtra("summary"), data.getStringExtra("startDate"), data.getStringExtra("endDate"), data.getIntExtra("priority", -1));
 
 
+    }
+    public void showSearchDialog(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        final EditText edittext = new EditText(getApplicationContext());
+        alert.setMessage("Write what you want to find");
+        alert.setTitle("Search in all meetings");
+        edittext.setTextColor(Color.BLACK);
+        alert.setView(edittext);
+
+        alert.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                //What ever you want to do with the value
+                searchMeeting( edittext.getText().toString());
+            }
+        });
+
+       /* alert.setNegativeButton("", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // what ever you want to do with No option.
+            }
+        });
+       */
+        alert.show();
     }
 
 }

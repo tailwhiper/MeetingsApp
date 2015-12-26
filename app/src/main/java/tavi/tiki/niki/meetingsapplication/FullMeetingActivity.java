@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -36,6 +38,7 @@ public class FullMeetingActivity extends AppCompatActivity {
         mId = getIntent().getIntExtra("id", -1);
 
         setContentView(R.layout.activity_full_meeting);
+
         initSwipeRefresh();
         getFullMeeting(mId);
 

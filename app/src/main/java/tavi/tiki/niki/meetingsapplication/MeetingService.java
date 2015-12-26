@@ -48,11 +48,13 @@ public class MeetingService extends IntentService {
         super(name);
     }
 
-
+    public MeetingService(){
+        super("name");
+    };
     @Override
     protected void onHandleIntent(Intent intent) {
     getTodayMeetings();
-    Log.wtf("MeetingService","onHandle intent started");
+    Log.wtf("MeetingService", "onHandle intent started");
     }
 
 
@@ -98,7 +100,7 @@ public class MeetingService extends IntentService {
                 List<MeetingShortInfo> oldInfo = loadSaved();
                 if (!(loadSaved().containsAll(shortInfos))) {
                     SendNotification();
-                }
+                } else{SendNotification();}
             }
 
             @Override

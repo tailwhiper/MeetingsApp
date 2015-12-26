@@ -42,11 +42,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MeetingsActivity" />
         </activity>
-
+        <service android:name=".MeetingService"  android:label="MeetingService" android:enabled="true"/>
         <receiver
             android:name=".MeetingsBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true" >
+             >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>

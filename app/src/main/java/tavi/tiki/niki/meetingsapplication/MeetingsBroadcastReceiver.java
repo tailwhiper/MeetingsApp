@@ -12,7 +12,7 @@ import model.Meeting;
 public class MeetingsBroadcastReceiver extends BroadcastReceiver {
     private int interval=0;
     public MeetingsBroadcastReceiver() {
-        interval = 120000;
+        interval = 10000;
     }
 
     @Override

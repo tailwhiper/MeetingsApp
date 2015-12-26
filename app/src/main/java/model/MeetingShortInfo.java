@@ -9,8 +9,8 @@ import java.util.Date;
 
 public class MeetingShortInfo implements Serializable {
     private int id;
-    private  Date startDate;
-    private  Date endDate;
+    private Date startDate;
+    private Date endDate;
     private String title;
     private int priority;
 
@@ -50,15 +50,15 @@ public class MeetingShortInfo implements Serializable {
         return endDate;
     }
 
-    public void setEndDate( Date endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 
-    public  Date getStartDate() {
+    public Date getStartDate() {
         return startDate;
     }
 
-    public void setStartDate( Date startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 
@@ -69,4 +69,5 @@ public class MeetingShortInfo implements Serializable {
     public void setTitle(String title) {
         this.title = title;
     }
+
 }

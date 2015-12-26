@@ -256,16 +256,19 @@ public class MeetingsActivity extends AppCompatActivity {
         initAdapter();
         initSwipe();
         initSwipeRefresh();
+
         getTodayMeetings(new Date(System.currentTimeMillis()));//load meetings for today
-        Intent intent = new Intent(this, MeetingsBroadcastReceiver.class);
-        startService(intent);
+        Intent intent = new Intent("backgroundLoad");
+        sendBroadcast(intent);
 
     }
+
 
     @Override
     protected void onResume() {
         super.onResume();
         initPreferences(this);
+
     }
 
     @Override

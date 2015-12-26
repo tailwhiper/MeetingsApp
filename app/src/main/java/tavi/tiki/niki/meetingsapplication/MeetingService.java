@@ -48,13 +48,16 @@ public class MeetingService extends IntentService {
         super(name);
     }
 
-    public MeetingService(){
+    public MeetingService() {
         super("name");
-    };
+    }
+
+    ;
+
     @Override
     protected void onHandleIntent(Intent intent) {
-    getTodayMeetings();
-    Log.wtf("MeetingService", "onHandle intent started");
+        getTodayMeetingsInBackground();
+        Log.wtf("MeetingService", "onHandle intent started");
     }
 
 
@@ -75,11 +78,11 @@ public class MeetingService extends IntentService {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(resultPendingIntent);
 
-        ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(0, mBuilder.build());
+        ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).notify(0, mBuilder.build());
 
     }
 
-    public void getTodayMeetings() {
+    public void getTodayMeetingsInBackground() {
         Date date = new Date(System.currentTimeMillis());
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String username = preferences.getString("login", "nikita");
@@ -98,9 +101,11 @@ public class MeetingService extends IntentService {
             @Override
             public void success(List<MeetingShortInfo> shortInfos, Response response) {
                 List<MeetingShortInfo> oldInfo = loadSaved();
-                if (!(loadSaved().containsAll(shortInfos))) {
+
+
+                if (oldInfo.size()<shortInfos.size()) {
                     SendNotification();
-                } else{SendNotification();}
+                }
             }
 
             @Override

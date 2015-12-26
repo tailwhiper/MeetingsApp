@@ -1,10 +1,12 @@
 package tavi.tiki.niki.meetingsapplication;
 
-import android.app.IntentService;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -18,15 +20,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import SwipeToDissimiss.SwipeDismissListViewTouchListener;
-import model.Meeting;
 import model.MeetingShortInfo;
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -39,10 +38,16 @@ public class Meetings extends AppCompatActivity {
     List<MeetingShortInfo> meetingShortInfos;
     MeetingsListAdapter adapter;
     SwipeRefreshLayout mSwipeRefreshLayout;
-    private final static String USERNAME = "nikita";
-    private final static String PASSWORD = "password";
+    private String username;
+    private  String password;
+
     private final static int ADD_MEETING__CODE = 1;
     private final static int FULL_MEETING__CODE = 2;
+    public void initPreferences(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        username = preferences.getString("login","nikita");
+        password = preferences.getString("password","password");
+    }
     public void initAdapter() {
         adapter = new MeetingsListAdapter(this, meetingShortInfos);
         ListView lvMeetings = (ListView) findViewById(R.id.listview_meetings);
@@ -113,7 +118,7 @@ public class Meetings extends AppCompatActivity {
     public void getAllMeetings() {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -141,7 +146,7 @@ public class Meetings extends AppCompatActivity {
         String stringDate = sdf.format(date);
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -168,7 +173,7 @@ public class Meetings extends AppCompatActivity {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -194,7 +199,7 @@ public class Meetings extends AppCompatActivity {
     public void deleteMeeting(String id) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -215,7 +220,7 @@ public class Meetings extends AppCompatActivity {
     public void addMeeting(String title, String summary, String startDate, String endDate, int priority) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -245,7 +250,14 @@ public class Meetings extends AppCompatActivity {
         initSwipe();
         initSwipeRefresh();
         getTodayMeetings(new Date(System.currentTimeMillis()));//load meetings for today
+        initPreferences(this);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initPreferences(this);
     }
 
     @Override
@@ -263,8 +275,8 @@ public class Meetings extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.pref_button) {
+            openPreferences();
         }
         if(id == R.id.search_button){
             showSearchDialog();
@@ -313,6 +325,10 @@ public class Meetings extends AppCompatActivity {
         });
        */
         alert.show();
+    }
+    public void openPreferences(){
+       Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
+        startActivity(intent);
     }
 
 }

@@ -57,6 +57,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:onClick="iWillGO" />
+        <TextView
+            android:text="Participants:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
         <ListView
             android:id="@+id/participantsListView"

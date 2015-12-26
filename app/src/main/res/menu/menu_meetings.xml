@@ -7,4 +7,10 @@
         android:icon="@android:drawable/ic_menu_search"
         android:orderInCategory="100"
         app:showAsAction="always"/>
+    <item
+        android:title="Preferences"
+        android:id="@+id/pref_button"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:orderInCategory="100"
+        app:showAsAction="always"/>
 </menu>

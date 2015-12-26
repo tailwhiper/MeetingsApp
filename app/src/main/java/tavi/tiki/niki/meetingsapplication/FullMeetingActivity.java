@@ -1,16 +1,17 @@
 package tavi.tiki.niki.meetingsapplication;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -23,14 +24,24 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 
 public class FullMeetingActivity extends AppCompatActivity {
-    private final static String USERNAME = "nikita";
-    private final static String PASSWORD = "password";
+    private String username = "nikita";
+    private String password = "password";
+    private String mName = "Nikita";
+    private String mJob = "BydloCoder";
     Meeting mMeeting;
     int mId;
-    String mName ="Nikita";
-    String mJob ="BydloCoder";
+
     ArrayAdapter<String> listadapter;
     ArrayList<String> stringsParticipants;
+
+    public void initPreferences(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        username = preferences.getString("login", "nikita");
+        password = preferences.getString("password", "password");
+        mName = preferences.getString("name", "nikita");
+        mJob= preferences.getString("job", "koekaker");
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +52,7 @@ public class FullMeetingActivity extends AppCompatActivity {
 
         initSwipeRefresh();
         getFullMeeting(mId);
-
+        initPreferences(this);
     }
 
     public void initSwipeRefresh() {
@@ -71,7 +82,7 @@ public class FullMeetingActivity extends AppCompatActivity {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 
@@ -116,14 +127,15 @@ public class FullMeetingActivity extends AppCompatActivity {
         }
         ((TextView) findViewById(R.id.priorityFull)).setText(getString(R.string.priority) + priority);
         refillList();
-        if ( mMeeting.getParticipants().contains(new Participant(mName,mJob)))findViewById(R.id.iwillgo_button).setVisibility(View.INVISIBLE);
+        if (mMeeting.getParticipants().contains(new Participant(mName, mJob)))
+            findViewById(R.id.iwillgo_button).setVisibility(View.INVISIBLE);
     }
 
     public void getFullMeeting(int id) {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(USERNAME, PASSWORD))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
 

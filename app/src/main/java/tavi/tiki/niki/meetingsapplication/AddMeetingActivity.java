@@ -159,7 +159,7 @@ public class AddMeetingActivity extends AppCompatActivity {
         intent.putExtra("endDate",sdf.format(mDateEnd));
         intent.putExtra("priority",mPriority);
 
-        setResult(RESULT_OK, intent);
+        setResult(MeetingsActivity.RESULT_CODE_OK, intent);
         finish();
     }
 

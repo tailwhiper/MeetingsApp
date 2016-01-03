@@ -1,5 +1,6 @@
 package tavi.tiki.niki.meetingsapplication;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -42,22 +43,39 @@ import retrofit.client.Response;
 public class MeetingsActivity extends AppCompatActivity {
     List<MeetingShortInfo> meetingShortInfos;
     MeetingsListAdapter adapter;
+    BroadcastReceiver myReceiver;
     SwipeRefreshLayout mSwipeRefreshLayout;
     private String username;
-    private  String password;
-
+    private String password;
     private final static int ADD_MEETING__CODE = 1;
-    public final static  String fileName ="savedMeetings.json";
+    private final static int SERVICE_REQUEST_CODE = 2;
+    public final static String SEARCH_INFO ="searchInfo";
+    public final static int RESULT_CODE_OK = 0;
+    public final static int RESULT_CODE_ERROR = -1;
+    public final static String fileName = "savedMeetings.json";
+    public final static String PENDING_INTENT = "PendingIntent";
 
-    public void initPreferences(Context context){
+    public void initPreferences(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        username = preferences.getString("login","nikita");
-        password = preferences.getString("password","password");
+        username = preferences.getString("login", "nikita");
+        password = preferences.getString("password", "password");
     }
+
+    public void initReceiver() {
+
+    }
+
     public void initAdapter() {
         adapter = new MeetingsListAdapter(this, meetingShortInfos);
         ListView lvMeetings = (ListView) findViewById(R.id.listview_meetings);
         lvMeetings.setAdapter(adapter);
+    }
+
+    public void updateAdapter(List<MeetingShortInfo> shortInfos) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        meetingShortInfos.clear();
+        meetingShortInfos.addAll(shortInfos);
+        adapter.notifyDataSetChanged();
     }
 
     public void initSwipe() {
@@ -85,10 +103,10 @@ public class MeetingsActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-               String meetingId = ((TextView)view.findViewById(R.id.meetingId)).getText().toString();
-                Intent intent = new Intent(getApplicationContext(),FullMeetingActivity.class);
-                String newId =meetingId.replace("Id: ","");
-                intent.putExtra("id",Integer.parseInt(newId));
+                String meetingId = ((TextView) view.findViewById(R.id.meetingId)).getText().toString();
+                Intent intent = new Intent(getApplicationContext(), FullMeetingActivity.class);
+                String newId = meetingId.replace("Id: ", "");
+                intent.putExtra("id", Integer.parseInt(newId));
                 startActivity(intent);
             }
         });
@@ -104,7 +122,8 @@ public class MeetingsActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 // getAllMeetings();
-                getTodayMeetings(new Date(System.currentTimeMillis()));
+                //getTodayMeetings(new Date(System.currentTimeMillis()));
+                getTodayMeetingsFromService();
             }
         });
 
@@ -147,6 +166,7 @@ public class MeetingsActivity extends AppCompatActivity {
         });
 
     }
+
     public void getTodayMeetings(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
         String stringDate = sdf.format(date);
@@ -175,6 +195,7 @@ public class MeetingsActivity extends AppCompatActivity {
         });
 
     }
+
     public void searchMeeting(String part) {
 
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -202,6 +223,7 @@ public class MeetingsActivity extends AppCompatActivity {
         });
 
     }
+
     public void deleteMeeting(String id) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -223,6 +245,7 @@ public class MeetingsActivity extends AppCompatActivity {
             }
         });
     }
+
     public void addMeeting(String title, String summary, String startDate, String endDate, int priority) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -314,7 +337,7 @@ public class MeetingsActivity extends AppCompatActivity {
         if (id == R.id.pref_button) {
             openPreferences();
         }
-        if(id == R.id.search_button){
+        if (id == R.id.search_button) {
             showSearchDialog();
         }
 
@@ -332,14 +355,32 @@ public class MeetingsActivity extends AppCompatActivity {
         if (data == null) {
             return;
         }
-        //+ add Meeting to service
-        String meeting = data.getStringExtra("title");
+        if (resultCode == RESULT_CODE_OK) {
+            switch (requestCode) {
+                case ADD_MEETING__CODE: {
+                    //+ add Meeting to service
+                    String meeting = data.getStringExtra("title");
 
-        addMeeting(data.getStringExtra("title"), data.getStringExtra("summary"), data.getStringExtra("startDate"), data.getStringExtra("endDate"), data.getIntExtra("priority", -1));
+                    addMeeting(data.getStringExtra("title"), data.getStringExtra("summary"), data.getStringExtra("startDate"), data.getStringExtra("endDate"), data.getIntExtra("priority", -1));
+                }
+                break;
+                case SERVICE_REQUEST_CODE: {
 
+                    Bundle bundle = data.getExtras();
+                    List<MeetingShortInfo> infos = (List<MeetingShortInfo>) bundle.getSerializable("listOfResults");
+                    updateAdapter(infos);
+
+                }
+                break;
+            }
+        } else {
+            Toast.makeText(this, data.getStringExtra("errorMessage"), Toast.LENGTH_SHORT).show();
+            mSwipeRefreshLayout.setRefreshing(false);
+        }
 
     }
-    public void showSearchDialog(){
+
+    public void showSearchDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         final EditText edittext = new EditText(getApplicationContext());
         alert.setMessage("Write what you want to find");
@@ -350,7 +391,8 @@ public class MeetingsActivity extends AppCompatActivity {
         alert.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //What ever you want to do with the value
-                searchMeeting( edittext.getText().toString());
+               // searchMeeting(edittext.getText().toString());
+                searchMeetingsFromService(edittext.getText().toString());
             }
         });
 
@@ -362,9 +404,32 @@ public class MeetingsActivity extends AppCompatActivity {
        */
         alert.show();
     }
-    public void openPreferences(){
-       Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
+
+    public void openPreferences() {
+        Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
         startActivity(intent);
+    }
+
+    public void getTodayMeetingsFromService() {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(SERVICE_REQUEST_CODE,new Intent() , 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.TODAY_MEETINGS)
+                .putExtra(PENDING_INTENT, pi);
+        // стартуем сервис
+        startService(intent);
+
+    }
+    public void searchMeetingsFromService(String searchInfo) {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(SERVICE_REQUEST_CODE,new Intent() , 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.SEARCH)
+                .putExtra(SEARCH_INFO,searchInfo)
+                .putExtra(PENDING_INTENT, pi);
+        // стартуем сервис
+        startService(intent);
+
     }
 
 }

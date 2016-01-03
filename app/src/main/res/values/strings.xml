@@ -13,7 +13,7 @@
     <string name="urlTodayMeetings">http://localhost:8080/meetings-app/rest/meetings/get/date/</string>
     <string name="urlFullMeeting">http://localhost:8080/meetings-app/rest/meetings/get/</string>
     <string name="urlSearchMeeting">http://localhost:8080/meetings-app/rest/meetings/get/search/</string>
-    <string name="baseURL">http://192.168.31.159:8080/meetings-app/rest/meetings/</string>
+    <string name="baseURL">http://192.168.2.3:8080/meetings-app/rest/meetings/</string>
     <string name="goButtonText">I will go</string>
     <string name="title_activity_add_meeting">AddMeetingActivity</string>
     <string name="title">Title:</string>

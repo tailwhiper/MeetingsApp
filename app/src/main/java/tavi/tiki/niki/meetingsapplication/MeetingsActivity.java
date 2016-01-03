@@ -47,10 +47,15 @@ public class MeetingsActivity extends AppCompatActivity {
     SwipeRefreshLayout mSwipeRefreshLayout;
     private String username;
     private String password;
+
+    public final static String SEARCH_INFO = "searchInfo";
+    public final static String ID = "id";
+
     private final static int ADD_MEETING__CODE = 1;
     private final static int SERVICE_REQUEST_CODE = 2;
-    public final static String SEARCH_INFO ="searchInfo";
-    public final static int RESULT_CODE_OK = 0;
+    public final static int RESULT_MEETINGS_LIST_UPDATED = 0;
+    public final static int RESULT_MEETING_DELETED = 4;
+    public final static int RESULT_MEETING_ADDED = 3;
     public final static int RESULT_CODE_ERROR = -1;
     public final static String fileName = "savedMeetings.json";
     public final static String PENDING_INTENT = "PendingIntent";
@@ -93,7 +98,7 @@ public class MeetingsActivity extends AppCompatActivity {
                             public void onDismiss(ListView listView, int[] reverseSortedPositions) {
                                 for (int position : reverseSortedPositions) {
                                     int id = meetingShortInfos.get(position).getId();
-                                    deleteMeeting(Integer.toString(id));
+                                    deleteMeetingFromService(Integer.toString(id));
                                     meetingShortInfos.remove(position);
                                 }
                                 adapter.notifyDataSetChanged();
@@ -167,108 +172,12 @@ public class MeetingsActivity extends AppCompatActivity {
 
     }
 
-    public void getTodayMeetings(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
-        String stringDate = sdf.format(date);
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
 
-        Restapi api = restAdapter.create(Restapi.class);
-        api.getMeetingsForDay(stringDate, new Callback<List<MeetingShortInfo>>() {
-            @Override
-            public void success(List<MeetingShortInfo> shortInfos, Response response) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                meetingShortInfos.clear();
-                meetingShortInfos.addAll(shortInfos);
-                adapter.notifyDataSetChanged();
-            }
 
-            @Override
-            public void failure(RetrofitError error) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                Log.d("Retrofit Error", error.getMessage());
-            }
-        });
 
-    }
 
-    public void searchMeeting(String part) {
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
 
-        Restapi api = restAdapter.create(Restapi.class);
-        api.searchMeeting(part, new Callback<List<MeetingShortInfo>>() {
-            @Override
-            public void success(List<MeetingShortInfo> shortInfos, Response response) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                meetingShortInfos.clear();
-                meetingShortInfos.addAll(shortInfos);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                Log.d("Retrofit Error", error.getMessage());
-            }
-        });
-
-    }
-
-    public void deleteMeeting(String id) {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
-
-        Restapi api = restAdapter.create(Restapi.class);
-        api.deleteMeeting(id, new Callback<String>() {
-            @Override
-            public void success(String s, Response response) {
-                Toast.makeText(getApplicationContext(), "Meeting was deleted on server", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                Log.d("Retrofit Error", error.getMessage());
-            }
-        });
-    }
-
-    public void addMeeting(String title, String summary, String startDate, String endDate, int priority) {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
-
-        Restapi api = restAdapter.create(Restapi.class);
-        api.putMeeting(title, summary, startDate, endDate, priority, new Callback<String>() {
-            @Override
-            public void success(String s, Response response) {
-                Toast.makeText(getApplicationContext(), "Meeting was added on server", Toast.LENGTH_LONG).show();
-                // getAllMeetings();
-                getTodayMeetings(new Date(System.currentTimeMillis()));
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                Log.d("Retrofit Error", error.getMessage());
-            }
-        });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -280,7 +189,7 @@ public class MeetingsActivity extends AppCompatActivity {
         initSwipe();
         initSwipeRefresh();
 
-        getTodayMeetings(new Date(System.currentTimeMillis()));//load meetings for today
+        getTodayMeetingsFromService();//load meetings for today
         Intent intent = new Intent("backgroundLoad");
         sendBroadcast(intent);
 
@@ -355,27 +264,36 @@ public class MeetingsActivity extends AppCompatActivity {
         if (data == null) {
             return;
         }
-        if (resultCode == RESULT_CODE_OK) {
-            switch (requestCode) {
-                case ADD_MEETING__CODE: {
-                    //+ add Meeting to service
-                    String meeting = data.getStringExtra("title");
+        switch (resultCode) {
+            case RESULT_MEETINGS_LIST_UPDATED: {
+                switch (requestCode) {
+                    case ADD_MEETING__CODE: {
+                        Bundle bundle = data.getExtras();
+                        addMeetingFromService(bundle);
+                        getTodayMeetingsFromService();
+                        }
+                    break;
+                    case SERVICE_REQUEST_CODE: {
 
-                    addMeeting(data.getStringExtra("title"), data.getStringExtra("summary"), data.getStringExtra("startDate"), data.getStringExtra("endDate"), data.getIntExtra("priority", -1));
+                        Bundle bundle = data.getExtras();
+                        List<MeetingShortInfo> infos = (List<MeetingShortInfo>) bundle.getSerializable("listOfResults");
+                        updateAdapter(infos);
+
+                    }
+                    break;
+                    case RESULT_MEETING_DELETED:
+                        Toast.makeText(this, "Meeting has been deleted", Toast.LENGTH_SHORT).show();
+                        break;
+                    case RESULT_MEETING_ADDED:
+                        Toast.makeText(this, "Meeting has been added", Toast.LENGTH_SHORT).show();
+                        break;
                 }
-                break;
-                case SERVICE_REQUEST_CODE: {
-
-                    Bundle bundle = data.getExtras();
-                    List<MeetingShortInfo> infos = (List<MeetingShortInfo>) bundle.getSerializable("listOfResults");
-                    updateAdapter(infos);
-
-                }
-                break;
             }
-        } else {
-            Toast.makeText(this, data.getStringExtra("errorMessage"), Toast.LENGTH_SHORT).show();
-            mSwipeRefreshLayout.setRefreshing(false);
+            break;
+            case RESULT_CODE_ERROR: {
+                Toast.makeText(this, data.getStringExtra("errorMessage"), Toast.LENGTH_SHORT).show();
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
         }
 
     }
@@ -391,7 +309,7 @@ public class MeetingsActivity extends AppCompatActivity {
         alert.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //What ever you want to do with the value
-               // searchMeeting(edittext.getText().toString());
+                // searchMeeting(edittext.getText().toString());
                 searchMeetingsFromService(edittext.getText().toString());
             }
         });
@@ -413,19 +331,43 @@ public class MeetingsActivity extends AppCompatActivity {
     public void getTodayMeetingsFromService() {
         PendingIntent pi;
         Intent intent;
-        pi = createPendingResult(SERVICE_REQUEST_CODE,new Intent() , 0);
+        pi = createPendingResult(SERVICE_REQUEST_CODE, new Intent(), 0);
         intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.TODAY_MEETINGS)
                 .putExtra(PENDING_INTENT, pi);
         // стартуем сервис
         startService(intent);
 
     }
+
     public void searchMeetingsFromService(String searchInfo) {
         PendingIntent pi;
         Intent intent;
-        pi = createPendingResult(SERVICE_REQUEST_CODE,new Intent() , 0);
+        pi = createPendingResult(SERVICE_REQUEST_CODE, new Intent(), 0);
         intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.SEARCH)
-                .putExtra(SEARCH_INFO,searchInfo)
+                .putExtra(SEARCH_INFO, searchInfo)
+                .putExtra(PENDING_INTENT, pi);
+        // стартуем сервис
+        startService(intent);
+
+    }
+
+    public void deleteMeetingFromService(String id) {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(RESULT_MEETING_DELETED, new Intent(), 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.DELETE_MEETING)
+                .putExtra(ID, id)
+                .putExtra(PENDING_INTENT, pi);
+        // стартуем сервис
+        startService(intent);
+
+    }
+    public void addMeetingFromService(Bundle bundle) {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(RESULT_MEETING_ADDED, new Intent(), 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.ADD_MEETING)
+                .putExtras(bundle)
                 .putExtra(PENDING_INTENT, pi);
         // стартуем сервис
         startService(intent);

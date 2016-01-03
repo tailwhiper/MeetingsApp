@@ -16,15 +16,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.google.gson.Gson;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import model.Meeting;
-import model.Participant;
 
 public class AddMeetingActivity extends AppCompatActivity {
     private String mTitle;
@@ -159,7 +154,7 @@ public class AddMeetingActivity extends AppCompatActivity {
         intent.putExtra("endDate",sdf.format(mDateEnd));
         intent.putExtra("priority",mPriority);
 
-        setResult(MeetingsActivity.RESULT_CODE_OK, intent);
+        setResult(MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
         finish();
     }
 

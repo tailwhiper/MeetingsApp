@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import model.Meeting;
 import model.MeetingShortInfo;
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -87,6 +88,21 @@ public class MeetingService extends IntentService {
             case SEARCH:
                 String searchinfo = intent.getStringExtra(MeetingsActivity.SEARCH_INFO);
                 searchMeeting(username,password,searchinfo,pi);
+                break;
+            case DELETE_MEETING:
+                String id = intent.getStringExtra(MeetingsActivity.ID);
+                deleteMeeting(username,password,id,pi);
+                break;
+            case ADD_MEETING:{
+
+                addMeeting(username,password,pi,intent.getStringExtra("title"),
+                        intent.getStringExtra("summary"),
+                        intent.getStringExtra("startDate"),
+                        intent.getStringExtra("endDate"),
+                        intent.getIntExtra("priority", -1));
+
+            }
+            break;
             default:
                 Log.wtf("MeetingService", "intent with no purpose ");
                 break;
@@ -190,28 +206,6 @@ public class MeetingService extends IntentService {
         return new ArrayList<MeetingShortInfo>();
     }
 
-    public void getAllMeetings(String username, String password) {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
-
-        Restapi api = restAdapter.create(Restapi.class);
-        api.getAllShort(new Callback<List<MeetingShortInfo>>() {
-            @Override
-            public void success(List<MeetingShortInfo> shortInfos, Response response) {
-                // update adapter and shit
-                // sendbroadcastsignal
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                // send broadcast
-            }
-        });
-
-    }
 
     public void getTodayMeetings(String username, String password, PendingIntent pi) {
         final PendingIntent localpi = pi;
@@ -236,7 +230,7 @@ public class MeetingService extends IntentService {
                 intent.putExtras(bundle);
 
                 try {
-                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_CODE_OK, intent);
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
                 } catch (PendingIntent.CanceledException e) {
                     e.printStackTrace();
                 }
@@ -260,6 +254,44 @@ public class MeetingService extends IntentService {
 
     }
 
+    public void deleteMeeting(String username, String password, String id,PendingIntent pi) {
+        final PendingIntent localpi = pi;
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.deleteMeeting(id, new Callback<String>() {
+            @Override
+            public void success(String info, Response response) {
+                Intent intent = new Intent();
+
+                try {
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("errorMessage", error.getMessage());
+                intent.putExtras(bundle);
+                try {
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_CODE_ERROR, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
     public void searchMeeting(String username, String password, String part,PendingIntent pi) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
@@ -277,7 +309,7 @@ public class MeetingService extends IntentService {
                 bundle.putSerializable("listOfResults", (Serializable) shortInfos);
                 intent.putExtras(bundle);
                 try {
-                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_CODE_OK, intent);
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
                 } catch (PendingIntent.CanceledException e) {
                     e.printStackTrace();
                 }
@@ -301,30 +333,9 @@ public class MeetingService extends IntentService {
 
     }
 
-    public void deleteMeeting(String username, String password, String id) {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
 
-        Restapi api = restAdapter.create(Restapi.class);
-        api.deleteMeeting(id, new Callback<String>() {
-            @Override
-            public void success(String s, Response response) {
-                // Toast.makeText(getApplicationContext(), "Meeting was deleted on server", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                // Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                // Log.d("Retrofit Error", error.getMessage());
-            }
-        });
-    }
-
-    public void addMeeting(String username, String password, String title, String summary, String startDate, String endDate, int priority) {
-
+    public void addMeeting(String username, String password,PendingIntent pi, String title, String summary, String startDate, String endDate, int priority) {
+        final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
@@ -335,17 +346,28 @@ public class MeetingService extends IntentService {
         api.putMeeting(title, summary, startDate, endDate, priority, new Callback<String>() {
             @Override
             public void success(String s, Response response) {
-                //Toast.makeText(getApplicationContext(), "Meeting was added on server", Toast.LENGTH_LONG).show();
-                // getAllMeetings();
-                // getTodayMeetings(new Date(System.currentTimeMillis()));
+                Intent intent = new Intent();
+
+                try {
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
             public void failure(RetrofitError error) {
-                // Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                //  Log.d("Retrofit Error", error.getMessage());
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("errorMessage", error.getMessage());
+                intent.putExtras(bundle);
+                try {
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_CODE_ERROR, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
             }
         });
-    }
 
+    }
 }

@@ -26,9 +26,7 @@ import com.google.gson.Gson;
 
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import SwipeToDissimiss.SwipeDismissListViewTouchListener;
@@ -43,10 +41,9 @@ import retrofit.client.Response;
 public class MeetingsActivity extends AppCompatActivity {
     List<MeetingShortInfo> meetingShortInfos;
     MeetingsListAdapter adapter;
-    BroadcastReceiver myReceiver;
+
     SwipeRefreshLayout mSwipeRefreshLayout;
-    private String username;
-    private String password;
+
 
     public final static String SEARCH_INFO = "searchInfo";
     public final static String ID = "id";
@@ -60,15 +57,8 @@ public class MeetingsActivity extends AppCompatActivity {
     public final static String fileName = "savedMeetings.json";
     public final static String PENDING_INTENT = "PendingIntent";
 
-    public void initPreferences(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        username = preferences.getString("login", "nikita");
-        password = preferences.getString("password", "password");
-    }
 
-    public void initReceiver() {
 
-    }
 
     public void initAdapter() {
         adapter = new MeetingsListAdapter(this, meetingShortInfos);
@@ -135,56 +125,15 @@ public class MeetingsActivity extends AppCompatActivity {
 
     }
 
-    public void fill() {
-        meetingShortInfos = new ArrayList<MeetingShortInfo>();
-        //meetingShortInfos.add(new MeetingShortInfo(0, "title0", 1, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
-        // meetingShortInfos.add(new MeetingShortInfo(1, "title1", 2, new Date(2015, 10, 11, 10, 15), new Date(2015, 10, 11, 10, 30)));
-        // meetingShortInfos.add(new MeetingShortInfo(2, "title2", 3, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        // meetingShortInfos.add(new MeetingShortInfo(3, "title3", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-        // meetingShortInfos.add(new MeetingShortInfo(4, "title4", 1, new DateTime(2015, 10, 11, 10, 15), new DateTime(2015, 10, 11, 10, 30)));
-    }
-
-
-    public void getAllMeetings() {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
-
-        Restapi api = restAdapter.create(Restapi.class);
-        api.getAllShort(new Callback<List<MeetingShortInfo>>() {
-            @Override
-            public void success(List<MeetingShortInfo> shortInfos, Response response) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                meetingShortInfos.clear();
-                meetingShortInfos.addAll(shortInfos);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                mSwipeRefreshLayout.setRefreshing(false);
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                Log.d("Retrofit Error", error.getMessage());
-            }
-        });
-
-    }
-
-
-
-
-
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
-        initPreferences(this);
+
         setContentView(R.layout.activity_meetings);
-        fill();
+        meetingShortInfos = new ArrayList<MeetingShortInfo>();
         initAdapter();
         initSwipe();
         initSwipeRefresh();
@@ -199,7 +148,7 @@ public class MeetingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        initPreferences(this);
+
 
     }
 
@@ -270,8 +219,7 @@ public class MeetingsActivity extends AppCompatActivity {
                     case ADD_MEETING__CODE: {
                         Bundle bundle = data.getExtras();
                         addMeetingFromService(bundle);
-                        getTodayMeetingsFromService();
-                        }
+                        getTodayMeetingsFromService();}
                     break;
                     case SERVICE_REQUEST_CODE: {
 
@@ -362,6 +310,7 @@ public class MeetingsActivity extends AppCompatActivity {
         startService(intent);
 
     }
+
     public void addMeetingFromService(Bundle bundle) {
         PendingIntent pi;
         Intent intent;

@@ -1,13 +1,14 @@
 package model;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import java.util.Date;
 import java.util.List;
 
 
-public class Meeting  {
+public class Meeting implements Serializable {
     public final static int PRIORITY_URGENT = 1;
     public final static int PRIORITY_PLANNED = 2;
     public final static int PRIORITY_IF_POSSIBLE = 3;

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 
-public class MeetingShortInfo implements Serializable {
+public class MeetingShortInfo implements Serializable{
     private int id;
     private Date startDate;
     private Date endDate;

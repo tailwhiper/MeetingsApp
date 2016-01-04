@@ -1,6 +1,8 @@
 package tavi.tiki.niki.meetingsapplication;
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -24,6 +26,11 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 
 public class FullMeetingActivity extends AppCompatActivity {
+    private final static int GET_FULL_MEETING_CODE = 0;
+    public final static int ADD_PARTICIPANT_CODE = 1;
+    public final static String ID = "id";
+    public final static String PARTICIPANT_NAME = "partName";
+    public final static String PARTICIPANT_JOB = "partJob";
     private String username = "nikita";
     private String password = "password";
     private String mName = "Nikita";
@@ -39,7 +46,7 @@ public class FullMeetingActivity extends AppCompatActivity {
         username = preferences.getString("login", "nikita");
         password = preferences.getString("password", "password");
         mName = preferences.getString("name", "nikita");
-        mJob= preferences.getString("job", "koekaker");
+        mJob = preferences.getString("job", "koekaker");
 
     }
 
@@ -51,8 +58,10 @@ public class FullMeetingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_full_meeting);
 
         initSwipeRefresh();
-        getFullMeeting(mId);
+
         initPreferences(this);
+        getFullMeetingFromService(mId);
+        //updateMeetingViews();
     }
 
     public void initSwipeRefresh() {
@@ -60,7 +69,7 @@ public class FullMeetingActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                getFullMeeting(mId);
+                getFullMeetingFromService(mId);
             }
         });
 
@@ -78,30 +87,7 @@ public class FullMeetingActivity extends AppCompatActivity {
         ((ListView) findViewById(R.id.participantsListView)).setAdapter(listadapter);
     }
 
-    public void putParticipant(int id, String name, String job) {
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
-                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
-                .setClient(new OkClient())
-                .build();                                        //create an adapter for retrofit with base url
-
-        Restapi api = restAdapter.create(Restapi.class);
-        api.putParticipantMeeting(id, name, job, new Callback<String>() {
-            @Override
-            public void success(String s, Response response) {
-                Toast.makeText(getApplicationContext(), "participant added.", Toast.LENGTH_SHORT).show();
-                View button = findViewById(R.id.iwillgo_button);
-                button.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-
-            }
-        });
-    }
 
     public void updateMeetingViews() {
         ((TextView) findViewById(R.id.titleFull)).setText(getString(R.string.title) + mMeeting.getTitle());
@@ -156,8 +142,57 @@ public class FullMeetingActivity extends AppCompatActivity {
     }
 
     public void iWillGO(View view) {
-        putParticipant(mId, mName, mJob);
+        addParticipantFromService(mId, mName, mJob);
 
     }
 
+    public void getFullMeetingFromService(int id) {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(GET_FULL_MEETING_CODE, new Intent(), 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.FULL_INFO)
+                .putExtra(ID, id)
+                .putExtra(MeetingsActivity.PENDING_INTENT, pi);
+
+        startService(intent);
+
+    }
+
+    public void addParticipantFromService(int id, String name, String job) {
+        PendingIntent pi;
+        Intent intent;
+        pi = createPendingResult(ADD_PARTICIPANT_CODE, new Intent(), 0);
+        intent = new Intent(this, MeetingService.class).putExtra("purpose", MeetingService.ADD_PARTICIPANT)
+                .putExtra(ID, id)
+                .putExtra(PARTICIPANT_NAME, name)
+                .putExtra(PARTICIPANT_JOB, job)
+                .putExtra(MeetingsActivity.PENDING_INTENT, pi);
+
+        startService(intent);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (resultCode){
+            case RESULT_OK:{
+                switch (requestCode){
+                    case ADD_PARTICIPANT_CODE:{
+                        getFullMeetingFromService(mId);
+
+                    }
+                        break;
+                    case GET_FULL_MEETING_CODE:{
+                        mMeeting = (Meeting) data.getSerializableExtra("meeting");
+                        updateMeetingViews();
+
+                    }
+                        break;
+                }
+            }
+            break;
+            case MeetingService.ERROR_CODE:{
+                Toast.makeText(this, data.getStringExtra("errorMessage"), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
+

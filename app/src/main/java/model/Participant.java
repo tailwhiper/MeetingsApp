@@ -1,6 +1,8 @@
 package model;
 
-public class Participant {
+import java.io.Serializable;
+
+public class Participant implements Serializable {
     private String Name;
     private String Job;
 

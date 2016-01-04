@@ -40,7 +40,7 @@ import retrofit.client.Response;
  */
 
 public class MeetingService extends IntentService {
-    public static final int ERROR_CODE = -1;
+    public static final int ERROR_CODE = -10;
     public static final int BACKGROUND_DOWNLOAD = 0;
     public static final int TODAY_MEETINGS = 1;
     public static final int FULL_INFO = 2;
@@ -48,6 +48,7 @@ public class MeetingService extends IntentService {
     public static final int DELETE_MEETING = 4;
     public static final int ADD_MEETING = 5;
     public static final int ADD_PARTICIPANT = 6;
+
     RestAdapter adapter;
     Restapi api;
 
@@ -83,23 +84,36 @@ public class MeetingService extends IntentService {
                 getTodayMeetingsInBackground(username, password);
                 break;
             case TODAY_MEETINGS:
-                getTodayMeetings(username, password,pi);
+                getTodayMeetings(username, password, pi);
                 break;
             case SEARCH:
                 String searchinfo = intent.getStringExtra(MeetingsActivity.SEARCH_INFO);
-                searchMeeting(username,password,searchinfo,pi);
+                searchMeeting(username, password, searchinfo, pi);
                 break;
-            case DELETE_MEETING:
+            case DELETE_MEETING: {
                 String id = intent.getStringExtra(MeetingsActivity.ID);
-                deleteMeeting(username,password,id,pi);
-                break;
-            case ADD_MEETING:{
+                deleteMeeting(username, password, id, pi);
+            }
+            break;
+            case ADD_MEETING:
 
-                addMeeting(username,password,pi,intent.getStringExtra("title"),
+                addMeeting(username, password, pi, intent.getStringExtra("title"),
                         intent.getStringExtra("summary"),
                         intent.getStringExtra("startDate"),
                         intent.getStringExtra("endDate"),
                         intent.getIntExtra("priority", -1));
+                break;
+
+            case FULL_INFO: {
+                getFullMeeting(username, password, intent.getIntExtra(FullMeetingActivity.ID, -1), pi);
+
+            }
+            break;
+            case ADD_PARTICIPANT: {
+                int id = intent.getIntExtra(FullMeetingActivity.ID, -1);
+                String name = intent.getStringExtra(FullMeetingActivity.PARTICIPANT_NAME);
+                String job = intent.getStringExtra(FullMeetingActivity.PARTICIPANT_JOB);
+                addParticipant(username, password, id, name, job, pi);
 
             }
             break;
@@ -254,7 +268,7 @@ public class MeetingService extends IntentService {
 
     }
 
-    public void deleteMeeting(String username, String password, String id,PendingIntent pi) {
+    public void deleteMeeting(String username, String password, String id, PendingIntent pi) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -292,7 +306,8 @@ public class MeetingService extends IntentService {
         });
 
     }
-    public void searchMeeting(String username, String password, String part,PendingIntent pi) {
+
+    public void searchMeeting(String username, String password, String part, PendingIntent pi) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -334,7 +349,7 @@ public class MeetingService extends IntentService {
     }
 
 
-    public void addMeeting(String username, String password,PendingIntent pi, String title, String summary, String startDate, String endDate, int priority) {
+    public void addMeeting(String username, String password, PendingIntent pi, String title, String summary, String startDate, String endDate, int priority) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(getString(R.string.baseURL))
@@ -352,6 +367,89 @@ public class MeetingService extends IntentService {
                     localpi.send(MeetingService.this, MeetingsActivity.RESULT_MEETINGS_LIST_UPDATED, intent);
                 } catch (PendingIntent.CanceledException e) {
                     e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("errorMessage", error.getMessage());
+                intent.putExtras(bundle);
+                try {
+                    localpi.send(MeetingService.this, MeetingsActivity.RESULT_CODE_ERROR, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
+    public void getFullMeeting(String username, String password, int id, PendingIntent pi) {
+        final PendingIntent localpi = pi;
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.getFullInfo(id, new Callback<Meeting>() {
+            @Override
+            public void success(Meeting m, Response response) {
+
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("meeting", (Serializable) m);
+
+                intent.putExtras(bundle);
+
+                try {
+                    localpi.send(MeetingService.this, FullMeetingActivity.RESULT_OK, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("errorMessage", error.getMessage());
+                intent.putExtras(bundle);
+                try {
+                    localpi.send(MeetingService.this, ERROR_CODE, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
+    public void addParticipant(String username, String password, int id, String name, String job, PendingIntent pi) {
+        final PendingIntent localpi = pi;
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(getString(R.string.baseURL))
+                .setRequestInterceptor(new ApiRequestInterceptor(username, password))
+                .setClient(new OkClient())
+                .build();                                        //create an adapter for retrofit with base url
+
+        Restapi api = restAdapter.create(Restapi.class);
+        api.putParticipantMeeting(id, name, job, new Callback<String>() {
+            public void success(String s, Response response) {
+                Intent intent = new Intent();
+
+                try {
+                    localpi.send(MeetingService.this, FullMeetingActivity.RESULT_OK, intent);
+                } catch (PendingIntent.CanceledException e) {
+                    e.printStackTrace();
+
                 }
             }
 

@@ -18,6 +18,8 @@
 
     <string name="pref_job">Job</string>
     <string name="pref_default_job">BydloCoder</string>
+    <string name="pref_ip">Server ip</string>
+    <string name="pref_default_ip">192.168.2.2</string>
     <!-- Example settings for Data & Sync -->
 
 

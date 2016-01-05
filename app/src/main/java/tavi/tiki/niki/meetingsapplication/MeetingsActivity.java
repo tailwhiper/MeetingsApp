@@ -31,11 +31,7 @@ import java.util.List;
 
 import SwipeToDissimiss.SwipeDismissListViewTouchListener;
 import model.MeetingShortInfo;
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.OkClient;
-import retrofit.client.Response;
+
 
 
 public class MeetingsActivity extends AppCompatActivity {
@@ -133,6 +129,7 @@ public class MeetingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_meetings);
+
         meetingShortInfos = new ArrayList<MeetingShortInfo>();
         initAdapter();
         initSwipe();
@@ -163,18 +160,13 @@ public class MeetingsActivity extends AppCompatActivity {
         try {
 
             outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
-            //тут вставил чарсет
-            /*
-            OutputStreamWriter wr = new OutputStreamWriter(outputStream);
-            wr.write(string);
-            wr.close();
-            */
             outputStream.write(string.getBytes(Charset.forName("UTF-8")));
             outputStream.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     @Override
@@ -230,9 +222,11 @@ public class MeetingsActivity extends AppCompatActivity {
                     }
                     break;
                     case RESULT_MEETING_DELETED:
+                        getTodayMeetingsFromService(); // автообновление
                         Toast.makeText(this, "Meeting has been deleted", Toast.LENGTH_SHORT).show();
                         break;
                     case RESULT_MEETING_ADDED:
+                        getTodayMeetingsFromService(); // автообновление
                         Toast.makeText(this, "Meeting has been added", Toast.LENGTH_SHORT).show();
                         break;
                 }
@@ -320,6 +314,7 @@ public class MeetingsActivity extends AppCompatActivity {
                 .putExtra(PENDING_INTENT, pi);
         // стартуем сервис
         startService(intent);
+
 
     }
 

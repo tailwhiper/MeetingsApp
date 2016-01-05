@@ -48,7 +48,7 @@ public class MeetingService extends IntentService {
     public static final int DELETE_MEETING = 4;
     public static final int ADD_MEETING = 5;
     public static final int ADD_PARTICIPANT = 6;
-
+    private String url;
     RestAdapter adapter;
     Restapi api;
 
@@ -77,6 +77,7 @@ public class MeetingService extends IntentService {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String username = preferences.getString("login", "nikita");
         String password = preferences.getString("password", "password");
+        url ="http://"+preferences.getString("ipserver","192.168.0.0")+getString(R.string.baseURL);
         int purpose = intent.getIntExtra("purpose", -1);
         PendingIntent pi = intent.getParcelableExtra(MeetingsActivity.PENDING_INTENT);
         switch (purpose) {
@@ -152,7 +153,7 @@ public class MeetingService extends IntentService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
         String stringDate = sdf.format(date);
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -227,7 +228,7 @@ public class MeetingService extends IntentService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
         String stringDate = sdf.format(date);
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -271,7 +272,7 @@ public class MeetingService extends IntentService {
     public void deleteMeeting(String username, String password, String id, PendingIntent pi) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -310,7 +311,7 @@ public class MeetingService extends IntentService {
     public void searchMeeting(String username, String password, String part, PendingIntent pi) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -352,7 +353,7 @@ public class MeetingService extends IntentService {
     public void addMeeting(String username, String password, PendingIntent pi, String title, String summary, String startDate, String endDate, int priority) {
         final PendingIntent localpi = pi;
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -390,7 +391,7 @@ public class MeetingService extends IntentService {
         final PendingIntent localpi = pi;
 
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
@@ -435,7 +436,7 @@ public class MeetingService extends IntentService {
         final PendingIntent localpi = pi;
 
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(getString(R.string.baseURL))
+                .setEndpoint(url)
                 .setRequestInterceptor(new ApiRequestInterceptor(username, password))
                 .setClient(new OkClient())
                 .build();                                        //create an adapter for retrofit with base url
